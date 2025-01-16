@@ -14,6 +14,19 @@ const fetchAndSaveProducts = async () => {
     await fs.writeFile('./data/products.json', JSON.stringify(products, null, 2));
 };
 
+const fetchProductById = async (productId) => {
+    const path = "./data/products.json"
+    if (isFileEmpty(path)) {
+        await fetchAndSaveProducts()
+    }
+
+    const rawData = await fs.readFile(path, "utf-8")
+    const json = JSON.parse(rawData)
+    const product = json.find((product) => {return product.id === productId})
+
+    return product
+}
+
 // kas fail on tyhi
 const isFileEmpty = async (path) => {
     try {
@@ -56,6 +69,19 @@ app.get('/products', async (req, res) => {
     }
 });
 
+app.get("/product/:id", async (req, res) => {
+    try {
+        const id = parseInt(req.params.id)
+        const product = await fetchProductById(id)
+
+        res.status(200).json(product);
+    }
+    catch(error) {
+        console.error(error)
+        res.status(500).json({ error: "toote leidmine eba6nnestus" });
+    }
+})
+
 
 // API: Käsitsi andmete uuesti laadimine ja faili salvestamine
 app.get('/fetch-products', async (req, res) => {
@@ -69,5 +95,5 @@ app.get('/fetch-products', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Server töötab: http://localhost:${PORT}`);
+    console.log(`Server funkab: http://localhost:${PORT}`);
 })
